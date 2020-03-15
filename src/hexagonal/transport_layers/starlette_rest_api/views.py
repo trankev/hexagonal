@@ -1,11 +1,20 @@
+import logging
+
 from starlette import responses
 
 from hexagonal import interactors
 
 
-def simple_view(service: interactors.Interactor, success_code: int = 200):
+def simple_view(
+        interactor: interactors.Interactor,
+        tracer,
+        *,
+        success_code: int = 200,
+):
     async def wrapper(request):
-        response = await service.run()
+        span = tracer.start_span(operation_name=f"rest_api:{interactor.name}")
+        response = await interactor.run()
+        span.finish()
         content = response.json()
         return responses.Response(
             content=content,

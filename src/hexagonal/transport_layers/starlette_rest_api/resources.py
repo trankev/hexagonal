@@ -10,11 +10,13 @@ class Resource:
     def __init__(
             self,
             name: str,
+            tracer,
             *,
             list_interactor: typing.Optional[interactors.Interactor],
             create_interactor: typing.Optional[interactors.Interactor],
     ) -> None:
         self.name = name
+        self.tracer = tracer
         self.list_interactor = list_interactor
         self.create_interactor = create_interactor
 
@@ -22,13 +24,13 @@ class Resource:
         if self.list_interactor:
             yield routing.Route(
                 f"/{self.name}",
-                views.simple_view(self.list_interactor),
-                name=self.list_interactor.name
+                views.simple_view(self.list_interactor, tracer=self.tracer),
+                name=self.list_interactor.name,
             )
         if self.create_interactor:
             yield routing.Route(
                 f"/{self.name}",
-                views.simple_view(self.create_interactor, success_code=201),
+                views.simple_view(self.create_interactor, success_code=201, tracer=self.tracer),
                 methods=["POST"],
                 name=self.create_interactor.name
             )
