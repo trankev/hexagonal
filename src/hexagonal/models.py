@@ -6,15 +6,6 @@ import pydantic
 import pydantic.generics
 
 
-AttributesT = typing.TypeVar("AttributesT")
-
-
-class Resource(pydantic.generics.GenericModel, typing.Generic[AttributesT]):
-    id: str
-    version: typing.Optional[int]
-    attributes: AttributesT
-
-
 DataT = typing.TypeVar("DataT")
 MetadataT = typing.TypeVar("MetadataT")
 
