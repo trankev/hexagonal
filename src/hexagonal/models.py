@@ -1,4 +1,5 @@
 import enum
+import logging
 import typing
 
 import pydantic
@@ -18,17 +19,17 @@ DataT = typing.TypeVar("DataT")
 MetadataT = typing.TypeVar("MetadataT")
 
 
-class MessageLevel(enum.Enum):
-    trace = enum.auto()
-    info = enum.auto()
-    warning = enum.auto()
-    error = enum.auto()
-    fatal = enum.auto()
+class MessageLevel(enum.IntEnum):
+    trace = logging.DEBUG
+    info = logging.INFO
+    warning = logging.WARNING
+    error = logging.ERROR
+    fatal = logging.FATAL
 
 
 class Message(pydantic.BaseModel):
     code: str
-    level: MessageLevel
+    level: int
     title: str
     source: typing.Optional[str]
 
