@@ -12,8 +12,8 @@ class Resource:
             name: str,
             tracer,
             *,
-            list_interactor: typing.Optional[interactors.Interactor],
-            create_interactor: typing.Optional[interactors.Interactor],
+            list_interactor: typing.Optional[interactors.BRBRInteractor],
+            create_interactor: typing.Optional[interactors.BRBRInteractor],
     ) -> None:
         self.name = name
         self.tracer = tracer

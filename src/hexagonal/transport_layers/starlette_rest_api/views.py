@@ -6,7 +6,7 @@ from hexagonal import interactors
 
 
 def simple_view(
-        interactor: interactors.Interactor,
+        interactor: interactors.BRBRInteractor,
         tracer,
         *,
         success_code: int = 200,
