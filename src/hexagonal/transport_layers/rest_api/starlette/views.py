@@ -5,7 +5,7 @@ from starlette import responses
 from hexagonal import interactors
 
 
-def simple_view(
+def brbr_view(
         interactor: interactors.BRBRInteractor,
         tracer,
         *,
