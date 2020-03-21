@@ -12,9 +12,8 @@ def simple_view(
         success_code: int = 200,
 ):
     async def wrapper(request):
-        span = tracer.start_span(operation_name=f"rest_api:{interactor.name}")
-        response = await interactor.run()
-        span.finish()
+        with tracer.start_active_span(operation_name=f"rest_api:{interactor.name}", finish_on_close=True):
+            response = await interactor.run()
         content = response.json()
         return responses.Response(
             content=content,

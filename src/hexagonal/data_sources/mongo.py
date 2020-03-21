@@ -14,6 +14,8 @@ AttributesT = typing.TypeVar("AttributesT", bound=pydantic.BaseModel)
 class MongoDataSource(typing.Generic[AttributesT]):
     def __init__(
             self,
+            tracer,
+            *,
             host: str,
             database_name: str,
             collection_name: str,
@@ -23,6 +25,7 @@ class MongoDataSource(typing.Generic[AttributesT]):
         database = client[database_name]
         self.collection = database[collection_name]
         self.attributes_type = attributes_type
+        self.tracer = tracer
 
     async def iterate(
             self,
@@ -42,22 +45,32 @@ class MongoDataSource(typing.Generic[AttributesT]):
             query = query.skip(offset)
         if limit is not None:
             query = query.limit(limit)
-        async for document in query:
-            item_id = str(document.pop("_id"))
-            version = document.pop("version")
-            attributes = self.attributes_type(**document)
-            item = models.Resource(
-                id=item_id,
-                version=version,
-                attributes=attributes,
-            )
-            yield item
+        with self.tracer.start_active_span(
+                operation_name=f"mongo:iterate",
+                finish_on_close=True,
+                child_of=self.tracer.scope_manager.active.span,
+        ):
+            async for document in query:
+                item_id = str(document.pop("_id"))
+                version = document.pop("version")
+                attributes = self.attributes_type(**document)
+                item = models.Resource(
+                    id=item_id,
+                    version=version,
+                    attributes=attributes,
+                )
+                yield item
 
     async def insert(self, attributes: AttributesT) -> models.Resource[AttributesT]:
         first_version = 1
         document = attributes.dict()
         document["version"] = first_version
-        response = await self.collection.insert_one(document)
+        with self.tracer.start_active_span(
+                operation_name=f"mongo:insert",
+                finish_on_close=True,
+                child_of=self.tracer.scope_manager.active.span,
+        ):
+            response = await self.collection.insert_one(document)
         result = models.Resource(
             id=str(response.inserted_id),
             version=first_version,

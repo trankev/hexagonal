@@ -29,7 +29,7 @@ class MessageLevel(enum.IntEnum):
 
 class Message(pydantic.BaseModel):
     code: str
-    level: int
+    severity: int
     title: str
     source: typing.Optional[str]
 

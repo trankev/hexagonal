@@ -1,14 +1,23 @@
 import json
 import logging
 
+import basictracer
 import basictracer.recorder
+from opentracing.scope_managers import contextvars
 
 
 TRACE_LEVEL = 15
 
 
-def setup_logging() -> None:
+def setup_tracer(logger_namespace: str):
     logging.addLevelName(TRACE_LEVEL, "TRACE")
+
+    scope_manager = contextvars.ContextVarsScopeManager()
+    span_logger = logging.getLogger(logger_namespace)
+    recorder = LogSpanRecorder(span_logger)
+    tracer = basictracer.BasicTracer(recorder=recorder, scope_manager=scope_manager)
+    tracer.register_required_propagators()
+    return tracer
 
 
 class LogSpanRecorder(basictracer.recorder.SpanRecorder):
@@ -30,7 +39,10 @@ class LogSpanRecorder(basictracer.recorder.SpanRecorder):
         for log in span.logs:
             log_content = {
                 "context": context,
-                "content": log.key_values,
+                "content": {
+                    field: str(value)
+                    for field, value in log.key_values.items()
+                }
             }
             span_logger.info(json.dumps(log_content))
         trace_content = {
@@ -39,6 +51,7 @@ class LogSpanRecorder(basictracer.recorder.SpanRecorder):
             "info": {
                 "duration": span.duration,
                 "parent_id": span.parent_id,
+                "operation_name": span.operation_name,
             }
         }
         span_logger.log(TRACE_LEVEL, json.dumps(trace_content))
