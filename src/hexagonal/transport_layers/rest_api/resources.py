@@ -8,7 +8,7 @@ from hexagonal import interactors
 class Route:
     path: str
     interactor: interactors.BRBRInteractor
-    methods: typing.Sequence[str] = ("GET",)
+    methods: typing.List[str]
     success_code: int = 200
 
 
@@ -23,11 +23,12 @@ class Resource:
             yield Route(
                 path=f"/{self.name}",
                 interactor=self.list_interactor,
+                methods=["GET"],
             )
         if self.create_interactor:
             yield Route(
                 path=f"/{self.name}",
                 interactor=self.create_interactor,
                 success_code=201,
-                methods=("POST",),
+                methods=["POST"],
             )
