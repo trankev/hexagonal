@@ -17,6 +17,7 @@ class Resource:
     name: str
     list_interactor: typing.Optional[interactors.BRBRInteractor] = None
     create_interactor: typing.Optional[interactors.BRBRInteractor] = None
+    retrieve_interactor: typing.Optional[interactors.BRBRInteractor] = None
 
     def iterate_routes(self) -> typing.Iterator[Route]:
         if self.list_interactor:
@@ -31,4 +32,11 @@ class Resource:
                 interactor=self.create_interactor,
                 success_code=201,
                 methods=["POST"],
+            )
+        if self.retrieve_interactor:
+            yield Route(
+                path=f"/{self.name}/{{item_id}}",
+                interactor=self.retrieve_interactor,
+                success_code=200,
+                methods=["GET"],
             )

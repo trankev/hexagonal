@@ -8,6 +8,7 @@ import pydantic.generics
 
 DataT = typing.TypeVar("DataT")
 MetadataT = typing.TypeVar("MetadataT")
+ParamsT = typing.TypeVar("ParamsT")
 
 
 class MessageLevel(enum.IntEnum):
@@ -29,3 +30,7 @@ class Response(pydantic.generics.GenericModel, typing.Generic[DataT, MetadataT])
     data: DataT
     metadata: MetadataT
     messages: typing.Sequence[Message]
+
+
+class Request(pydantic.generics.GenericModel, typing.Generic[ParamsT]):
+    params: ParamsT
