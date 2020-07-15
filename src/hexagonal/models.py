@@ -34,3 +34,7 @@ class Response(pydantic.generics.GenericModel, typing.Generic[DataT, MetadataT])
 
 class Request(pydantic.generics.GenericModel, typing.Generic[ParamsT]):
     params: ParamsT
+
+
+class NoParams(pydantic.BaseModel):
+    pass

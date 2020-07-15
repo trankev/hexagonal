@@ -1,5 +1,6 @@
 import typing
 
+from starlette import requests
 from starlette import responses
 
 from hexagonal import interactors
@@ -7,7 +8,10 @@ from hexagonal import models
 from hexagonal.transport_layers.rest_api import mappings
 
 
-async def extract_params(request, mapping_list: typing.Sequence[mappings.Mapping]) -> dict:
+async def extract_params(
+        request: requests.Request,
+        mapping_list: typing.Sequence[mappings.Mapping],
+) -> dict:
     body = None
     params = {}
     for mapping in mapping_list:
@@ -26,17 +30,13 @@ async def extract_params(request, mapping_list: typing.Sequence[mappings.Mapping
 
 def brbr_view(
     interactor: interactors.BRBRInteractor,
-    tracer,
     *,
     success_code: int = 200,
-):
-    async def wrapper(request):
-        # with tracer.start_active_span(
-        #         operation_name=f"rest_api:{interactor.name}",
-        #         finish_on_close=True):
+) -> typing.Callable[[requests.Request], responses.Response]:
+    async def wrapper(request: requests.Request) -> responses.Response:
         params = await extract_params(request, interactor.rest_api_mapping)
         request = models.Request(
-            params=interactor.RequestClass.parse_obj(params)
+            params=interactor.RequestClass.parse_obj(params),
         )
         response = await interactor.run(request)
         content = response.json()

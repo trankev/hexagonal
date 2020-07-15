@@ -6,18 +6,15 @@ import pydantic
 from hexagonal import models
 
 
-DataT = typing.TypeVar("DataT")
-MetadataT = typing.TypeVar("MetadataT")
-
-
-class NoParams(pydantic.BaseModel):
-    pass
+DataT = typing.TypeVar("DataT", bound=pydantic.BaseModel)
+MetadataT = typing.TypeVar("MetadataT", bound=pydantic.BaseModel)
 
 
 class Interactor(abc.ABC):
     name: typing.ClassVar[str]
     rest_api_mapping = ()
-    RequestClass: typing.ClassVar[typing.Type[pydantic.BaseModel]] = NoParams
+
+    RequestClass: typing.Any = models.NoParams  # subclasses as attribute not supported
 
 
 class BRBRInteractor(Interactor, abc.ABC, typing.Generic[DataT, MetadataT]):
