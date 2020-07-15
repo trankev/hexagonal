@@ -5,7 +5,6 @@ import pydantic
 
 from hexagonal import models
 
-
 DataT = typing.TypeVar("DataT", bound=pydantic.BaseModel)
 MetadataT = typing.TypeVar("MetadataT", bound=pydantic.BaseModel)
 

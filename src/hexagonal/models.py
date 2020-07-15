@@ -5,7 +5,6 @@ import typing
 import pydantic
 import pydantic.generics
 
-
 DataT = typing.TypeVar("DataT")
 MetadataT = typing.TypeVar("MetadataT")
 ParamsT = typing.TypeVar("ParamsT")

@@ -9,8 +9,8 @@ from hexagonal.transport_layers.rest_api import mappings
 
 
 async def extract_params(
-        request: requests.Request,
-        mapping_list: typing.Sequence[mappings.Mapping],
+    request: requests.Request,
+    mapping_list: typing.Sequence[mappings.Mapping],
 ) -> dict:
     body = None
     params = {}
@@ -33,11 +33,10 @@ def brbr_view(
     *,
     success_code: int = 200,
 ) -> typing.Callable[[requests.Request], responses.Response]:
+
     async def wrapper(request: requests.Request) -> responses.Response:
         params = await extract_params(request, interactor.rest_api_mapping)
-        request = models.Request(
-            params=interactor.RequestClass.parse_obj(params),
-        )
+        request = models.Request(params=interactor.RequestClass.parse_obj(params), )
         response = await interactor.run(request)
         content = response.json()
         return responses.Response(
