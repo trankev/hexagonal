@@ -5,8 +5,9 @@ import typing
 import pydantic
 import pydantic.generics
 
-DataT = typing.TypeVar("DataT")
-ParamsT = typing.TypeVar("ParamsT")
+DataT = typing.TypeVar("DataT", bound=pydantic.BaseModel)
+ItemT = typing.TypeVar("ItemT", bound=pydantic.BaseModel)
+ParamsT = typing.TypeVar("ParamsT", bound=pydantic.BaseModel)
 
 
 class MessageLevel(enum.IntEnum):
@@ -35,3 +36,7 @@ class Request(pydantic.generics.GenericModel, typing.Generic[ParamsT]):
 
 class NoParams(pydantic.BaseModel):
     pass
+
+
+class Listing(pydantic.BaseModel, typing.Generic[ItemT]):
+    items: typing.List[ItemT]

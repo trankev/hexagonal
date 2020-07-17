@@ -1,42 +1,34 @@
+import pydantic
 import pytest
 import starlette.applications
 import starlette.testclient
 
-from hexagonal import interactors
-from hexagonal import models
+from hexagonal import services
+from hexagonal.models import ports
 from hexagonal.transport_layers.rest_api import api
 from hexagonal.transport_layers.rest_api import resources
 from hexagonal.transport_layers.rest_api.starlette import routing
 
 
-class ResourceListingInteractor(interactors.BRBRInteractor[dict, dict]):
+class Data(pydantic.BaseModel):
+    int_field: int
+    bool_field: bool
+
+
+class ResourceListingService(services.ABBService[ports.Listing[Data]]):
     name = "list_resource"
 
     data = [
-        {
-            "id": 1,
-            "version": 10,
-            "attributes": {
-                "int_field": 5,
-                "bool_field": True,
-            },
-        },
-        {
-            "id": 2,
-            "version": 3,
-            "attributes": {
-                "int_field": 3,
-                "bool_field": False,
-            },
-        },
+        Data(int_field=5, bool_field=True),
+        Data(int_field=3, bool_field=False),
     ]
 
-    async def run(self, request: models.Request[models.NoParams]) -> models.Response[dict, dict]:
-        return models.Response(
-            data=self.data,
-            metadata={},
+    async def run(self, request: ports.Request[ports.NoParams]) -> ports.Response[dict]:
+        response = ports.Response(
+            data=ports.Listing(items=self.data),
             messages=[],
         )
+        return response
 
 
 @pytest.fixture(name="rest_api", scope="session")
@@ -45,7 +37,7 @@ def rest_api_fixture() -> starlette.applications.Starlette:
         resources=[
             resources.Resource(
                 name="resources",
-                list_interactor=ResourceListingInteractor(),
+                list_service=ResourceListingService(),
             ),
         ],
     )
@@ -62,8 +54,9 @@ def test_list_resource(test_client: starlette.testclient.TestClient) -> None:
     response = test_client.get("/resources")
     assert response.status_code == 200
     expected = {
-        "data": ResourceListingInteractor.data,
-        "metadata": {},
+        "data": {
+            "items": [item.dict() for item in ResourceListingService.data],
+        },
         "messages": [],
     }
 
