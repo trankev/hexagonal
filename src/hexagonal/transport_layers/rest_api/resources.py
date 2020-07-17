@@ -1,13 +1,13 @@
 import dataclasses
 import typing
 
-from hexagonal import interactors
+from hexagonal import services
 
 
 @dataclasses.dataclass
 class Route:
     path: str
-    interactor: interactors.BRBRInteractor
+    interactor: services.ABBService
     methods: typing.List[str]
     success_code: int = 200
 
@@ -15,36 +15,36 @@ class Route:
 @dataclasses.dataclass
 class Resource:
     name: str
-    list_interactor: typing.Optional[interactors.BRBRInteractor] = None
-    create_interactor: typing.Optional[interactors.BRBRInteractor] = None
-    retrieve_interactor: typing.Optional[interactors.BRBRInteractor] = None
-    update_interactor: typing.Optional[interactors.BRBRInteractor] = None
+    list_service: typing.Optional[services.ABBService] = None
+    create_service: typing.Optional[services.ABBService] = None
+    retrieve_service: typing.Optional[services.ABBService] = None
+    update_service: typing.Optional[services.ABBService] = None
 
     def iterate_routes(self) -> typing.Iterator[Route]:
-        if self.list_interactor:
+        if self.list_service:
             yield Route(
                 path=f"/{self.name}",
-                interactor=self.list_interactor,
+                interactor=self.list_service,
                 methods=["GET"],
             )
-        if self.create_interactor:
+        if self.create_service:
             yield Route(
                 path=f"/{self.name}",
-                interactor=self.create_interactor,
+                interactor=self.create_service,
                 success_code=201,
                 methods=["POST"],
             )
-        if self.retrieve_interactor:
+        if self.retrieve_service:
             yield Route(
                 path=f"/{self.name}/{{item_id}}",
-                interactor=self.retrieve_interactor,
+                interactor=self.retrieve_service,
                 success_code=200,
                 methods=["GET"],
             )
-        if self.update_interactor:
+        if self.update_service:
             yield Route(
                 path=f"/{self.name}/{{item_id}}",
-                interactor=self.update_interactor,
+                interactor=self.update_service,
                 success_code=200,
                 methods=["PUT"],
             )

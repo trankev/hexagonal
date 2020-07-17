@@ -3,8 +3,8 @@ import typing
 from starlette import requests
 from starlette import responses
 
-from hexagonal import interactors
 from hexagonal import models
+from hexagonal import services
 from hexagonal.transport_layers.rest_api import mappings
 
 
@@ -29,7 +29,7 @@ async def extract_params(
 
 
 def brbr_view(
-    interactor: interactors.BRBRInteractor,
+    interactor: services.ABBService,
     *,
     success_code: int = 200,
 ) -> typing.Callable[[requests.Request], responses.Response]:

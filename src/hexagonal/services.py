@@ -9,18 +9,18 @@ DataT = typing.TypeVar("DataT", bound=pydantic.BaseModel)
 MetadataT = typing.TypeVar("MetadataT", bound=pydantic.BaseModel)
 
 
-class Interactor(abc.ABC):
+class Service(abc.ABC):
     name: typing.ClassVar[str]
     rest_api_mapping = ()
 
     RequestClass: typing.Any = models.NoParams  # subclasses as attribute not supported
 
 
-class BRBRInteractor(Interactor, abc.ABC, typing.Generic[DataT, MetadataT]):
-    """Basic request, basic response interactor."""
+class ABBService(Service, abc.ABC, typing.Generic[DataT, MetadataT]):
+    """Asynchronous Basic request, basic response interactor."""
 
     async def run(
         self,
-        request: models.Request[Interactor.RequestClass],
+        request: models.Request[Service.RequestClass],
     ) -> models.Response[DataT, MetadataT]:
         raise NotImplementedError()
