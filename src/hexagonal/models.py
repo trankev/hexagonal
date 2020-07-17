@@ -6,7 +6,6 @@ import pydantic
 import pydantic.generics
 
 DataT = typing.TypeVar("DataT")
-MetadataT = typing.TypeVar("MetadataT")
 ParamsT = typing.TypeVar("ParamsT")
 
 
@@ -25,9 +24,8 @@ class Message(pydantic.BaseModel):
     source: typing.Optional[str]
 
 
-class Response(pydantic.generics.GenericModel, typing.Generic[DataT, MetadataT]):
+class Response(pydantic.generics.GenericModel, typing.Generic[DataT]):
     data: DataT
-    metadata: MetadataT
     messages: typing.Sequence[Message]
 
 

@@ -6,7 +6,6 @@ import pydantic
 from hexagonal import models
 
 DataT = typing.TypeVar("DataT", bound=pydantic.BaseModel)
-MetadataT = typing.TypeVar("MetadataT", bound=pydantic.BaseModel)
 
 
 class Service(abc.ABC):
@@ -16,11 +15,11 @@ class Service(abc.ABC):
     RequestClass: typing.Any = models.NoParams  # subclasses as attribute not supported
 
 
-class ABBService(Service, abc.ABC, typing.Generic[DataT, MetadataT]):
+class ABBService(Service, abc.ABC, typing.Generic[DataT]):
     """Asynchronous Basic request, basic response interactor."""
 
     async def run(
         self,
         request: models.Request[Service.RequestClass],
-    ) -> models.Response[DataT, MetadataT]:
+    ) -> models.Response[DataT]:
         raise NotImplementedError()
