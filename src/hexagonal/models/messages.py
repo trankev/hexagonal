@@ -12,8 +12,13 @@ class MessageLevel(enum.Enum):
     fatal = "fatal"
 
 
+class ErrorCode(enum.Enum):
+    input_error = "input_error"
+    missing_field = "missing_field"
+
+
 class Message(pydantic.BaseModel):
-    code: str
+    code: ErrorCode
     severity: MessageLevel
     title: str
     source: typing.Optional[str]
@@ -28,7 +33,16 @@ def parse_errors(errors: typing.Sequence[dict]) -> typing.Iterator[Message]:
 def field_error(title: str, source: str) -> Message:
     return Message(
         severity=MessageLevel.error,
-        code="input_error",
+        code=ErrorCode.input_error,
         title=title,
+        source=source,
+    )
+
+
+def missing_field(source: str, location: str) -> Message:
+    return Message(
+        severity=MessageLevel.error,
+        code=ErrorCode.missing_field,
+        title=f"missing value from {location}",
         source=source,
     )
