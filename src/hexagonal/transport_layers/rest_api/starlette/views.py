@@ -1,10 +1,12 @@
 import typing
 
+import pydantic
 from starlette import requests
 from starlette import responses
 
-from hexagonal import models
 from hexagonal import services
+from hexagonal.models import messages
+from hexagonal.models import ports
 from hexagonal.transport_layers.rest_api import mappings
 
 
@@ -35,8 +37,18 @@ def brbr_view(
 ) -> typing.Callable[[requests.Request], responses.Response]:
 
     async def wrapper(request: requests.Request) -> responses.Response:
-        params = await extract_params(request, interactor.rest_api_mapping)
-        request = models.Request(params=interactor.RequestClass.parse_obj(params), )
+        params_dict = await extract_params(request, interactor.rest_api_mapping)
+        try:
+            params = interactor.RequestClass.parse_obj(params_dict)
+        except pydantic.ValidationError as err:
+            errors = list(messages.parse_errors(err.errors()))
+            response = ports.Response(data=None, messages=errors)
+            return responses.Response(
+                content=response.json(),
+                media_type="application/json",
+                status_code=400,  # TODO: proper status code
+            )
+        request = ports.Request(params=params)
         response = await interactor.run(request)
         content = response.json()
         return responses.Response(

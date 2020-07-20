@@ -3,7 +3,7 @@ import typing
 
 import pydantic
 
-from hexagonal import models
+from hexagonal.models import ports
 
 DataT = typing.TypeVar("DataT", bound=pydantic.BaseModel)
 
@@ -12,7 +12,7 @@ class Service(abc.ABC):
     name: typing.ClassVar[str]
     rest_api_mapping = ()
 
-    RequestClass: typing.Any = models.NoParams  # subclasses as attribute not supported
+    RequestClass: typing.Any = ports.NoParams  # subclasses as attribute not supported
 
 
 class ABBService(Service, abc.ABC, typing.Generic[DataT]):
@@ -20,6 +20,6 @@ class ABBService(Service, abc.ABC, typing.Generic[DataT]):
 
     async def run(
         self,
-        request: models.Request[Service.RequestClass],
-    ) -> models.Response[DataT]:
+        request: ports.Request[Service.RequestClass],
+    ) -> ports.Response[DataT]:
         raise NotImplementedError()
