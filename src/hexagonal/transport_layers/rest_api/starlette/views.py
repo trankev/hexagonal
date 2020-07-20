@@ -47,47 +47,65 @@ async def extract_params(
     return params, errors
 
 
-def brbr_view(
+def abb_view(
     interactor: services.ABBService,
     *,
     success_code: int = 200,
 ) -> typing.Callable[[requests.Request], responses.Response]:
 
     async def wrapper(request: requests.Request) -> responses.Response:
-        params_dict, errors = await extract_params(request, interactor.rest_api_mapping)
-        if errors:
-            return error_response(errors)
-        try:
-            params = interactor.RequestClass.parse_obj(params_dict)
-        except pydantic.ValidationError as err:
-            errors = list(messages.parse_errors(err.errors()))
-            return error_response(errors)
-        request = ports.Request(params=params)
-        response = await interactor.run(request)
-        content = response.json()
+        response = await compute_response(interactor, request)
+        status_code = compute_status_code(response.messages, success_code)
         return responses.Response(
-            content=content,
+            response.json(),
             media_type="application/json",
-            status_code=success_code,
+            status_code=status_code,
         )
 
     return wrapper
 
 
+async def compute_response(
+    interactor: services.ABBService,
+    request: requests.Request,
+) -> ports.Response:
+    params_dict, errors = await extract_params(request, interactor.rest_api_mapping)
+    if errors:
+        return ports.Response(data=None, messages=errors)
+    try:
+        params = interactor.RequestClass.parse_obj(params_dict)
+    except pydantic.ValidationError as err:
+        errors = list(messages.parse_errors(err.errors()))
+        return ports.Response(data=None, messages=errors)
+    request = ports.Request(params=params)
+    response = await interactor.run(request)
+    return response
+
+
 # Sorted mapping of internal error code to HTTP code
 # higher errors in the list will have priority
-ERROR_CODES = [
-    (400, (messages.ErrorCode.input_error, messages.ErrorCode.missing_field)),
+ERROR_CODES: typing.List[typing.Tuple[int, typing.Sequence[messages.ErrorCode]]] = [
+    (404, (messages.ErrorCode.resource_not_found, )),
+    (400, (
+        messages.ErrorCode.input_error,
+        messages.ErrorCode.missing_field,
+    )),
 ]
 
+ERROR_SEVERITTIES = frozenset((
+    messages.MessageLevel.error,
+    messages.MessageLevel.fatal,
+))
 
-def error_response(errors: typing.List[messages.Message]) -> responses.Response:
-    status_code = 500
+
+def compute_status_code(messages: typing.Sequence[messages.Message], success_code: int) -> int:
+    if not messages:
+        return success_code
+    status_code = success_code
+    if any(message.severity in ERROR_SEVERITTIES for message in messages):
+        status_code = 500
     for http_code, message_codes in ERROR_CODES:
-        if any(error.code in message_codes for error in errors):
+        if any(message.code in message_codes for message in messages):
             status_code = http_code
-    response = ports.Response(data=None, messages=errors)
-    return responses.JSONResponse(
-        content=response.dict(),
-        status_code=status_code,
-    )
+            break
+    return status_code

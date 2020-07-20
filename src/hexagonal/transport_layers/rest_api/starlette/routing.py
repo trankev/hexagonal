@@ -10,7 +10,7 @@ def create_routes(api_obj: api.API) -> typing.List[routing.Route]:
     routes = [
         routing.Route(
             route.path,
-            views.brbr_view(route.interactor, success_code=route.success_code),
+            views.abb_view(route.interactor, success_code=route.success_code),
             name=route.interactor.name,
             methods=route.methods,
         ) for resource in api_obj.resources for route in resource.iterate_routes()

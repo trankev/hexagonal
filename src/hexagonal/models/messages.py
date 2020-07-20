@@ -1,5 +1,6 @@
 import enum
 import typing
+import uuid
 
 import pydantic
 
@@ -15,6 +16,7 @@ class MessageLevel(enum.Enum):
 class ErrorCode(enum.Enum):
     input_error = "input_error"
     missing_field = "missing_field"
+    resource_not_found = "resource_not_found"
 
 
 class Message(pydantic.BaseModel):
@@ -45,4 +47,13 @@ def missing_field(source: str, location: str) -> Message:
         code=ErrorCode.missing_field,
         title=f"missing value from {location}",
         source=source,
+    )
+
+
+def resource_not_found(resource_name: str, resource_id: uuid.UUID) -> Message:
+    return Message(
+        severity=MessageLevel.error,
+        code=ErrorCode.resource_not_found,
+        title=f"can not find {resource_name} with id {resource_id}",
+        source=None,
     )
