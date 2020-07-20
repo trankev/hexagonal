@@ -87,8 +87,7 @@ def error_response(errors: typing.List[messages.Message]) -> responses.Response:
         if any(error.code in message_codes for error in errors):
             status_code = http_code
     response = ports.Response(data=None, messages=errors)
-    return responses.Response(
-        content=response.json(),
-        media_type="application/json",
+    return responses.JSONResponse(
+        content=response.dict(),
         status_code=status_code,
     )
