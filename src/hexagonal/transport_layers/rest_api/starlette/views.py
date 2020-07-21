@@ -49,13 +49,13 @@ async def extract_params(
 
 
 def abb_view(
-    interactor: services.ABBService,
+    service: services.ABBService,
     *,
     success_code: int = 200,
 ) -> typing.Callable[[requests.Request], responses.Response]:
 
     async def wrapper(request: requests.Request) -> responses.Response:
-        response = await compute_response(interactor, request)
+        response = await compute_response(service, request)
         status_code = compute_status_code(response.messages, success_code)
         return responses.Response(
             response.json(),
@@ -67,20 +67,20 @@ def abb_view(
 
 
 async def compute_response(
-    interactor: services.ABBService,
+    service: services.ABBService,
     request: requests.Request,
 ) -> ports.Response:
-    params_dict, errors = await extract_params(request, interactor.rest_api_mapping)
+    params_dict, errors = await extract_params(request, service.rest_api_mapping)
     if errors:
         return ports.Response(data=None, messages=errors)
     try:
-        params = interactor.RequestClass.parse_obj(params_dict)
+        params = service.RequestClass.parse_obj(params_dict)
     except pydantic.ValidationError as err:
         errors = list(messages.parse_errors(err.errors()))
         return ports.Response(data=None, messages=errors)
     request = ports.Request(params=params)
     try:
-        response = await interactor.run(request)
+        response = await service.run(request)
     except Exception:
         # TODO: proper error logging
         logging.exception("Issue while querying the service")
