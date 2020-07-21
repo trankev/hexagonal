@@ -85,11 +85,14 @@ async def compute_response(
 # Sorted mapping of internal error code to HTTP code
 # higher errors in the list will have priority
 ERROR_CODES: typing.List[typing.Tuple[int, typing.Sequence[messages.ErrorCode]]] = [
-    (404, (messages.ErrorCode.resource_not_found, )),
-    (400, (
-        messages.ErrorCode.input_error,
-        messages.ErrorCode.missing_field,
-    )),
+    (412, (messages.ErrorCode.outdated_resource, )),  # precondition failed
+    (
+        400,
+        (  # bad request
+            messages.ErrorCode.input_error,
+            messages.ErrorCode.missing_field,
+        ),
+    ),
 ]
 
 ERROR_SEVERITTIES = frozenset((

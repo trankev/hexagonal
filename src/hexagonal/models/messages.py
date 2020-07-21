@@ -17,6 +17,7 @@ class ErrorCode(enum.Enum):
     input_error = "input_error"
     missing_field = "missing_field"
     resource_not_found = "resource_not_found"
+    outdated_resource = "outdated_resource"
 
 
 class Message(pydantic.BaseModel):
@@ -55,5 +56,22 @@ def resource_not_found(resource_name: str, resource_id: uuid.UUID) -> Message:
         severity=MessageLevel.error,
         code=ErrorCode.resource_not_found,
         title=f"can not find {resource_name} with id {resource_id}",
+        source=None,
+    )
+
+
+def outdated_resource(
+    resource_name: str,
+    resource_id: uuid.UUID,
+    queried_version: int,
+    current_version: int,
+) -> Message:
+    return Message(
+        severity=MessageLevel.error,
+        code=ErrorCode.outdated_resource,
+        title=(
+            f"{resource_name} with id {resource_id} is outdated"
+            f" (queried version: {queried_version}, current version: {current_version})"
+        ),
         source=None,
     )
