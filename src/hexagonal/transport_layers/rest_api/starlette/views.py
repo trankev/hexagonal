@@ -1,4 +1,5 @@
 import json
+import logging
 import typing
 
 import pydantic
@@ -78,7 +79,12 @@ async def compute_response(
         errors = list(messages.parse_errors(err.errors()))
         return ports.Response(data=None, messages=errors)
     request = ports.Request(params=params)
-    response = await interactor.run(request)
+    try:
+        response = await interactor.run(request)
+    except Exception:
+        # TODO: proper error logging
+        logging.exception("Issue while querying the service")
+        return ports.Response(data=None, messages=[messages.internal_error()])
     return response
 
 
@@ -86,6 +92,7 @@ async def compute_response(
 # higher errors in the list will have priority
 ERROR_CODES: typing.List[typing.Tuple[int, typing.Sequence[messages.ErrorCode]]] = [
     (412, (messages.ErrorCode.outdated_resource, )),  # precondition failed
+    (404, (messages.ErrorCode.resource_not_found, )),  # not found
     (
         400,
         (  # bad request

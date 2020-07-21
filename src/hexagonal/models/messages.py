@@ -18,6 +18,7 @@ class ErrorCode(enum.Enum):
     missing_field = "missing_field"
     resource_not_found = "resource_not_found"
     outdated_resource = "outdated_resource"
+    internal_error = "ïnternal_error"
 
 
 class Message(pydantic.BaseModel):
@@ -73,5 +74,14 @@ def outdated_resource(
             f"{resource_name} with id {resource_id} is outdated"
             f" (queried version: {queried_version}, current version: {current_version})"
         ),
+        source=None,
+    )
+
+
+def internal_error() -> Message:
+    return Message(
+        severity=MessageLevel.error,
+        code=ErrorCode.internal_error,
+        title="An internal issue prevented the query to be fulfilled",
         source=None,
     )
