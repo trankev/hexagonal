@@ -1,3 +1,4 @@
+import abc
 import dataclasses
 import typing
 
@@ -13,8 +14,15 @@ class Route:
 
 
 @dataclasses.dataclass
-class Resource:
+class Resource(abc.ABC):
     name: str
+
+    def iterate_routes(self) -> typing.Iterator[Route]:
+        raise NotImplementedError()
+
+
+@dataclasses.dataclass
+class ResourceCollection(Resource):
     list_service: typing.Optional[services.ABBService] = None
     create_service: typing.Optional[services.ABBService] = None
     retrieve_service: typing.Optional[services.ABBService] = None
@@ -47,4 +55,18 @@ class Resource:
                 interactor=self.update_service,
                 success_code=200,
                 methods=["PUT"],
+            )
+
+
+@dataclasses.dataclass
+class UniqueResource(Resource):
+    retrieve_service: typing.Optional[services.ABBService] = None
+
+    def iterate_routes(self) -> typing.Iterator[Route]:
+        if self.retrieve_service:
+            yield Route(
+                path=f"/{self.name}",
+                interactor=self.retrieve_service,
+                success_code=200,
+                methods=["GET"],
             )
