@@ -15,6 +15,8 @@ async def do_nothing(request: ports.Request[pydantic.BaseModel]) -> None:
 
 Behaviour = typing.Callable[[ports.Request[pydantic.BaseModel]], typing.Awaitable[None]]
 
+DEFAULT_MESSAGES: typing.List[messages.Message] = []
+
 
 class Data(pydantic.BaseModel):
     int_field: int = 12
@@ -26,12 +28,13 @@ class MockService(services.ABBService[Data]):
 
     def __init__(self) -> None:
         self.return_data = Data()
-        self.messages: typing.List[messages.Message] = []
+        self.messages: typing.List[messages.Message] = DEFAULT_MESSAGES
         self.behaviour: Behaviour = do_nothing
 
     async def run(self, request: ports.Request[ports.NoParams]) -> ports.Response[dict]:
         await self.behaviour(request)
-        return self.response()
+        response = self.response()
+        return response
 
     def response(self) -> ports.Response:
         response = ports.Response(
@@ -41,7 +44,13 @@ class MockService(services.ABBService[Data]):
         return response
 
     @contextlib.contextmanager
-    def with_behaviour(self, behaviour: Behaviour) -> typing.Iterator[None]:
+    def custom_behaviour(self, behaviour: Behaviour) -> typing.Iterator[None]:
         self.behaviour = behaviour
         yield
         self.behaviour = do_nothing
+
+    @contextlib.contextmanager
+    def custom_messages(self, messages: typing.List[messages.Message]) -> typing.Iterator[None]:
+        self.messages = messages
+        yield
+        self.messages = DEFAULT_MESSAGES

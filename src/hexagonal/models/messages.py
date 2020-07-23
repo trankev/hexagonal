@@ -19,6 +19,7 @@ class ErrorCode(enum.Enum):
     resource_not_found = "resource_not_found"
     outdated_resource = "outdated_resource"
     internal_error = "internal_error"
+    miscellanous = "miscellanous"
 
 
 class Message(pydantic.BaseModel):
