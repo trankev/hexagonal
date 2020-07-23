@@ -30,7 +30,11 @@ async def extract_params(
                 error = messages.missing_field(f"/{mapping.field}", "header")
                 errors.append(error)
         elif mapping.source == mappings.Source.query:
-            params[mapping.attribute] = request.query_params[mapping.field]
+            try:
+                params[mapping.attribute] = request.query_params[mapping.field]
+            except KeyError:
+                error = messages.missing_field(f"/{mapping.field}", "query parameter")
+                errors.append(error)
         elif mapping.source == mappings.Source.body:
             if body is None:
                 if tried_parse_body:

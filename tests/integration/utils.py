@@ -7,6 +7,7 @@ import pydantic
 from hexagonal import services
 from hexagonal.models import messages
 from hexagonal.models import ports
+from hexagonal.transport_layers.rest_api import mappings
 
 
 async def do_nothing(request: ports.Request[pydantic.BaseModel]) -> None:
@@ -46,11 +47,29 @@ class MockService(services.ABBService[Data]):
     @contextlib.contextmanager
     def custom_behaviour(self, behaviour: Behaviour) -> typing.Iterator[None]:
         self.behaviour = behaviour
-        yield
-        self.behaviour = do_nothing
+        try:
+            yield
+        finally:
+            self.behaviour = do_nothing
 
     @contextlib.contextmanager
     def custom_messages(self, messages: typing.List[messages.Message]) -> typing.Iterator[None]:
         self.messages = messages
-        yield
-        self.messages = DEFAULT_MESSAGES
+        try:
+            yield
+        finally:
+            self.messages = DEFAULT_MESSAGES
+
+    @contextlib.contextmanager
+    def custom_request(
+        self,
+        request_cls: typing.Type[pydantic.BaseModel],
+        mapping: typing.Tuple[mappings.Mapping, ...],
+    ) -> typing.Iterator[None]:
+        self.RequestClass = request_cls
+        self.rest_api_mapping = mapping
+        try:
+            yield
+        finally:
+            self.RequestClass = ports.NoParams
+            self.rest_api_mapping = ()
