@@ -20,21 +20,23 @@ class Resource(abc.ABC):
     def iterate_routes(self) -> typing.Iterator[Route]:
         raise NotImplementedError()
 
+    def main_route_id(self) -> str:
+        raise NotImplementedError()
+
 
 @dataclasses.dataclass
 class ResourceCollection(Resource):
-    list_service: typing.Optional[services.ABBService] = None
+    list_service: services.ABBService
     create_service: typing.Optional[services.ABBService] = None
     retrieve_service: typing.Optional[services.ABBService] = None
     update_service: typing.Optional[services.ABBService] = None
 
     def iterate_routes(self) -> typing.Iterator[Route]:
-        if self.list_service:
-            yield Route(
-                path=f"/{self.name}",
-                interactor=self.list_service,
-                methods=["GET"],
-            )
+        yield Route(
+            path=f"/{self.name}",
+            interactor=self.list_service,
+            methods=["GET"],
+        )
         if self.create_service:
             yield Route(
                 path=f"/{self.name}",
@@ -57,16 +59,21 @@ class ResourceCollection(Resource):
                 methods=["PUT"],
             )
 
+    def main_route_id(self) -> str:
+        return self.list_service.name
+
 
 @dataclasses.dataclass
 class UniqueResource(Resource):
-    retrieve_service: typing.Optional[services.ABBService] = None
+    retrieve_service: services.ABBService
 
     def iterate_routes(self) -> typing.Iterator[Route]:
-        if self.retrieve_service:
-            yield Route(
-                path=f"/{self.name}",
-                interactor=self.retrieve_service,
-                success_code=200,
-                methods=["GET"],
-            )
+        yield Route(
+            path=f"/{self.name}",
+            interactor=self.retrieve_service,
+            success_code=200,
+            methods=["GET"],
+        )
+
+    def main_route_id(self) -> str:
+        return self.retrieve_service.name

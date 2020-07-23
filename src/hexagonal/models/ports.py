@@ -25,3 +25,8 @@ class NoParams(pydantic.BaseModel):
 
 class Listing(pydantic.BaseModel, typing.Generic[ItemT]):
     items: typing.List[ItemT]
+
+
+class Link(pydantic.BaseModel):
+    href: str
+    name: str
