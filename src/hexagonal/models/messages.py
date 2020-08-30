@@ -29,12 +29,6 @@ class Message(pydantic.BaseModel):
     source: typing.Optional[str]
 
 
-def parse_errors(errors: typing.Sequence[dict]) -> typing.Iterator[Message]:
-    for error in errors:
-        source_path = "/".join(("", ) + error["loc"])
-        yield field_error(error["msg"], source_path)
-
-
 def field_error(title: str, source: str) -> Message:
     return Message(
         severity=MessageLevel.error,
@@ -64,7 +58,7 @@ def resource_not_found(resource_name: str, resource_id: uuid.UUID) -> Message:
 
 def outdated_resource(
     resource_name: str,
-    resource_id: uuid.UUID,
+    resource_id: typing.Any,
     queried_version: int,
     current_version: int,
 ) -> Message:
