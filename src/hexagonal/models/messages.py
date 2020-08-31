@@ -13,7 +13,7 @@ class MessageLevel(enum.Enum):
     fatal = "fatal"
 
 
-class ErrorCode(enum.Enum):
+class ErrorCode:
     input_error = "input_error"
     missing_field = "missing_field"
     resource_not_found = "resource_not_found"
@@ -23,10 +23,11 @@ class ErrorCode(enum.Enum):
 
 
 class Message(pydantic.BaseModel):
-    code: ErrorCode
+    code: str
     severity: MessageLevel
     title: str
-    source: typing.Optional[str]
+    source: typing.Optional[str] = None
+    metadata: dict = pydantic.Field(default_factory=dict)
 
 
 def field_error(title: str, source: str) -> Message:
